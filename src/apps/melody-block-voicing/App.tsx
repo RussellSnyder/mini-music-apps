@@ -5,12 +5,13 @@ import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { ScaleType } from "tonal";
 import { Voice, type VoiceValue } from "./components/Voice";
-import { buildVoicesAbc } from "./utils/voicing";
+import { buildVoicesAbc, type NonScaleToneResolution } from "./utils/voicing";
 
 const defaultNotes = "64, 67, 72, 71, 69, 67, 64";
 const defaultAbc = `
 M:4/4
 L:1/8
+Q:1/4=120
 E2 G c d2 c2 | A _A G2 F E C2 |
 `;
 
@@ -34,6 +35,10 @@ const ROOTS = [
   "B",
 ];
 const SCALES = ScaleType.names();
+const NON_SCALE_TONE_OPTIONS = [
+  { value: "repeat-last-note", label: "Repeat last note" },
+  { value: "chromatic", label: "Chromatic" },
+] as const;
 
 const selectClassName =
   "rounded-lg border border-zinc-300 bg-white px-4 py-3 text-base text-zinc-900 outline-none transition focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/20";
@@ -44,6 +49,8 @@ function App() {
   );
   const [root, setRoot] = useState("C");
   const [scale, setScale] = useState("major");
+  const [nonScaleToneResolution, setNonScaleToneResolution] =
+    useState<NonScaleToneResolution>(NON_SCALE_TONE_OPTIONS[0].value);
   const [voices, setVoices] = useState<VoiceValue[]>([
     { id: "1", stepsBelow: 2 },
     { id: "2", stepsBelow: 4 },
@@ -57,8 +64,9 @@ function App() {
         voices.map((v) => v.stepsBelow),
         root,
         scale,
+        nonScaleToneResolution,
       ),
-    [melodyAbc, voices, root, scale],
+    [melodyAbc, voices, root, scale, nonScaleToneResolution],
   );
 
   const nextVoiceId = useRef(4);
@@ -124,34 +132,64 @@ function App() {
           </select>
         </div>
       </div>
-      <section className="flex flex-col gap-4" aria-label="Voices">
-        <h2 className="text-xl font-semibold">Voices</h2>
-        {voices.map((voice, index) => (
-          <Voice
-            key={voice.id}
-            index={index}
-            value={voice}
-            melodyAbc={melodyAbc}
-            root={root}
-            scale={scale}
-            onChange={(next) =>
-              setVoices((current) =>
-                current.map((v) => (v.id === voice.id ? next : v)),
-              )
-            }
-            onRemove={() =>
-              setVoices((current) => current.filter((v) => v.id !== voice.id))
-            }
-          />
-        ))}
-        <button
-          type="button"
-          onClick={addVoice}
-          className="self-start rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700"
+      <div className="flex flex-col gap-2">
+        <label htmlFor="non-scale-tone" className="font-semibold">
+          How to resolve none scale tones
+        </label>
+        <select
+          id="non-scale-tone"
+          value={nonScaleToneResolution}
+          onChange={(e) =>
+            setNonScaleToneResolution(e.target.value as NonScaleToneResolution)
+          }
+          className={selectClassName}
         >
-          Add voice
-        </button>
-      </section>
+          {NON_SCALE_TONE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <details className="group flex flex-col gap-4" open>
+        <summary className="flex cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+          <span
+            aria-hidden="true"
+            className="text-zinc-500 transition-transform group-open:rotate-90"
+          >
+            ▶
+          </span>
+          <h2 className="text-xl font-semibold">Voices</h2>
+        </summary>
+        <div className="mt-4 flex flex-col gap-4">
+          {voices.map((voice, index) => (
+            <Voice
+              key={voice.id}
+              index={index}
+              value={voice}
+              melodyAbc={melodyAbc}
+              root={root}
+              scale={scale}
+              nonScaleToneResolution={nonScaleToneResolution}
+              onChange={(next) =>
+                setVoices((current) =>
+                  current.map((v) => (v.id === voice.id ? next : v)),
+                )
+              }
+              onRemove={() =>
+                setVoices((current) => current.filter((v) => v.id !== voice.id))
+              }
+            />
+          ))}
+          <button
+            type="button"
+            onClick={addVoice}
+            className="self-start rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700"
+          >
+            Add voice
+          </button>
+        </div>
+      </details>
       {voicesAbc && (
         <section className="flex flex-col gap-4" aria-label="Voicing">
           <h2 className="text-xl font-semibold">Voicing</h2>

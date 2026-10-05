@@ -14,3 +14,9 @@ MusicInput.tsx
 - allow direct editing of rendered music notation
 - highlight notes being played
 - allow global rhythm overrides (set everything to quarter for example)
+
+Melody Block Voicing
+- Add composer presets (Basie, Thad Jones, etc)
+- Calculate the scale based on the input
+- allow chords to be input and allow chord resolution
+- 

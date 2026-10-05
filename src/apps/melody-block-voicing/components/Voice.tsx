@@ -1,7 +1,10 @@
 "use client";
 import { AbcViewer } from "@/shared/AbcViewer";
 import { useMemo, useState } from "react";
-import { transposeAbcDownByScaleSteps } from "../utils/voicing";
+import {
+  transposeAbcDownByScaleSteps,
+  type NonScaleToneResolution,
+} from "../utils/voicing";
 
 export type VoiceValue = {
   id: string;
@@ -14,6 +17,7 @@ type VoiceProps = {
   melodyAbc: string;
   root: string;
   scale: string;
+  nonScaleToneResolution: NonScaleToneResolution;
   onChange: (value: VoiceValue) => void;
   onRemove: () => void;
 };
@@ -24,6 +28,7 @@ export function Voice({
   melodyAbc,
   root,
   scale,
+  nonScaleToneResolution,
   onChange,
   onRemove,
 }: VoiceProps) {
@@ -31,8 +36,14 @@ export function Voice({
   const inputId = `voice-${value.id}-steps-below`;
   const abcNotation = useMemo(
     () =>
-      transposeAbcDownByScaleSteps(melodyAbc, value.stepsBelow, root, scale),
-    [melodyAbc, value.stepsBelow, root, scale],
+      transposeAbcDownByScaleSteps(
+        melodyAbc,
+        value.stepsBelow,
+        root,
+        scale,
+        nonScaleToneResolution,
+      ),
+    [melodyAbc, value.stepsBelow, root, scale, nonScaleToneResolution],
   );
 
   return (
