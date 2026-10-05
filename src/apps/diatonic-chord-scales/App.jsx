@@ -1,5 +1,4 @@
 "use client";
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import "./App.css";
@@ -38,13 +37,8 @@ function NotFound() {
 const BASE_URL = "/diatonic-chord-scales";
 
 function App() {
-  const [isDarkMode, setIsDarkMode] = useState(true);
   const pathname = usePathname().replace(/\/$/, "");
   const route = pathname.slice(BASE_URL.length);
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = isDarkMode ? "dark" : "light";
-  }, [isDarkMode]);
 
   let page = <NotFound />;
   if (route === "") page = <Home />;
@@ -67,15 +61,6 @@ function App() {
             About
           </Link>
         </nav>
-        <button
-          className="theme-switch"
-          type="button"
-          role="switch"
-          aria-checked={isDarkMode}
-          onClick={() => setIsDarkMode((enabled) => !enabled)}
-        >
-          {isDarkMode ? "Light mode" : "Dark mode"}
-        </button>
       </header>
       {page}
     </>

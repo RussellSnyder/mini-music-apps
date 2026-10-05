@@ -130,9 +130,8 @@ function TonalSystem({
     (index) => {
       const engraver = visualObjRef.current?.[0]?.engraver;
       const range = chordRanges[index];
-      const isDarkMode = document.documentElement.dataset.theme === "dark";
-      const highlightColor = isDarkMode ? "#ffbfa1" : "#ffcc00";
-      const normalColor = isDarkMode ? "#rgb(156, 163, 175)" : "#000";
+      const highlightColor = "#ffcc00";
+      const normalColor = "#000";
 
       highlightedElementsRef.current.forEach((element) =>
         element.unhighlight("tonal-system-chord-selected", normalColor),

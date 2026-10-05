@@ -30,6 +30,13 @@ const apps = [
     href: "/chord-differentiator/",
     visual: "chords",
   },
+  {
+    title: "Melody Block Voicing",
+    description:
+      "Harmonize a melody in four-way close block voicing, sax soli style.",
+    href: "/melody-block-voicing/",
+    visual: "chords",
+  },
 ];
 
 function Navigation() {
@@ -64,8 +71,8 @@ function AboutPage() {
         <p className="eyebrow">About Mini Music Apps</p>
         <h1 className="leading-10">Tools for modern composition</h1>
         <p className="pb-4">
-          Mini Music Apps is a collection of focused tools for exploring
-          music theory, number patterns, rhythm, and harmonic ideas.
+          Mini Music Apps is a collection of focused tools for exploring music
+          theory, number patterns, rhythm, and harmonic ideas.
         </p>
         <p className="pb-4">
           This project started as a consolidation of smaller apps built by

@@ -38,7 +38,7 @@ export function generateAbcNotation(
     return processedNotes.join(" ") + " |";
   });
 
-  return `X:1\nT:Music Crochet\nM:4/4\nL:1/16\nK:C\n${lines.join("\n")}`;
+  return `M:4/4\nL:1/16\n${lines.join("\n")}`;
 }
 
 export function parseMidiFileToAbc(

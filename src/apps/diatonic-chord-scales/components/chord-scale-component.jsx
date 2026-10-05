@@ -135,9 +135,8 @@ function ChordScaleComponent({
         return;
       }
 
-      const isDarkMode = document.documentElement.dataset.theme === "dark";
-      const highlightColor = isDarkMode ? "#ffbfa1" : "#ffcc00";
-      const normalColor = isDarkMode ? "#fff" : "#000";
+      const highlightColor = "#ffcc00";
+      const normalColor = "#000";
 
       highlightedElementsRef.current.forEach((element) =>
         element.unhighlight("chord-scale-entry-selected", normalColor),

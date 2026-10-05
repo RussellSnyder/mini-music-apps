@@ -97,7 +97,7 @@ export function AbcViewer({ abcNotation }: AbcViewerProps) {
   if (!abcNotation) return null;
 
   return (
-    <div className="abc-viewer my-6 p-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+    <div className="abc-viewer my-6 p-4 bg-white text-gray-900 rounded-lg shadow border border-gray-200">
       <div ref={paperRef} />
       <div ref={audioRef} className="mt-4" />
     </div>

@@ -29,11 +29,9 @@ export function HtmlMidiPlayer({ dataUri, fileName }: HtmlMidiPlayerProps) {
   if (!dataUri) return null;
 
   return (
-    <div className="html-midi-player-container my-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 flex flex-col gap-4">
+    <div className="html-midi-player-container my-6 p-4 bg-white rounded-lg shadow border border-gray-200 flex flex-col gap-4">
       {fileName && (
-        <h3 className="text-md font-semibold text-gray-700 dark:text-gray-300">
-          {fileName}
-        </h3>
+        <h3 className="text-md font-semibold text-gray-700">{fileName}</h3>
       )}
 
       {/* Visualizer (Staff) */}

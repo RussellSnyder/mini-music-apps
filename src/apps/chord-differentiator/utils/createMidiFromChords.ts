@@ -3,7 +3,9 @@ import MidiWriter from "midi-writer-js";
 import type { Chord } from "./getChordsBetween";
 import { noteNameToMidi } from "./noteUtils";
 
-export function createMidiFromChords(chords: Chord[]): InstanceType<typeof MidiWriter.Writer> {
+export function createMidiFromChords(
+  chords: Chord[],
+): InstanceType<typeof MidiWriter.Writer> {
   const track = new MidiWriter.Track();
 
   chords.forEach((chord) => {

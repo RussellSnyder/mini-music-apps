@@ -6,7 +6,9 @@ import "./App.css";
 import { usePathname } from "next/navigation";
 
 function App() {
-  const route = usePathname().replace(/^\/kaprekar-sequencer\/?/, "").replace(/\/$/, "");
+  const route = usePathname()
+    .replace(/^\/kaprekar-sequencer\/?/, "")
+    .replace(/\/$/, "");
   const isAboutRoute = route === "about";
 
   return (

@@ -133,10 +133,6 @@ h1 {
   display: inline-block;
 }
 
-:root[data-theme="dark"] .tonal-system-title {
-  border-color: #fff;
-}
-
 .tonal-system + .tonal-system {
   margin-top: 40px;
 }
@@ -149,11 +145,6 @@ h1 {
 .chord-scale-entry-selected {
   fill: #a0871f;
   stroke: #a0871f;
-}
-
-:root[data-theme="dark"] .chord-scale-entry-selected {
-  /* fill: #fff !important;
-  stroke: #fff !important; */
 }
 
 .chord-scale-page {
