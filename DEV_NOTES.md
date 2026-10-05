@@ -10,3 +10,7 @@ TODO
 MusicInput.tsx
 - all notes below middle C should be on a second bass staff
 - Allow rhythms to be entered in an input for midi notes
+- create piano roll input and editing
+- allow direct editing of rendered music notation
+- highlight notes being played
+- allow global rhythm overrides (set everything to quarter for example)

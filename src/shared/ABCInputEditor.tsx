@@ -59,7 +59,7 @@ export function ABCInputEditor({
     <div className="flex flex-col gap-4">
       <label className="flex flex-col gap-2">
         <textarea
-          className="field-sizing-content min-h-40 rounded-lg border border-zinc-300 bg-white p-3 font-mono text-sm text-zinc-900"
+          className="field-sizing-content min-h-40 rounded-lg border border-zinc-300 bg-white px-4 py-3 font-mono text-sm text-zinc-900"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           spellCheck={false}

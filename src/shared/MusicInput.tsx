@@ -25,8 +25,8 @@ type MusicInputState = {
 };
 
 const inputModes = [
-  { mode: "midi-notes", label: "MIDI Notes Input" },
   { mode: "abc", label: "ABC Input" },
+  { mode: "midi-notes", label: "MIDI Notes Input" },
   { mode: "file", label: "Upload MIDI File" },
 ] as const;
 
@@ -45,7 +45,7 @@ function createMusicInputState(
   abcText: string,
 ): MusicInputState {
   return {
-    mode: "midi-notes",
+    mode: "abc",
     notesText,
     committedNotesText: notesText,
     abcText,
@@ -123,6 +123,7 @@ function getEditorValue(state: MusicInputState): string | null {
 export type MusicInputOutput = {
   mode: InputMode;
   midiNotes: number[];
+  abcNotation: string;
   uploadedMidi: UploadedMidi | null;
   isLoading: boolean;
 };
@@ -131,6 +132,7 @@ function toOutput(state: MusicInputState): MusicInputOutput {
   return {
     mode: state.mode,
     midiNotes: getMidiNotes(state),
+    abcNotation: getEditorValue(state) ?? "",
     uploadedMidi: state.uploadedMidi,
     isLoading: state.isLoading,
   };
@@ -197,11 +199,14 @@ export function MusicInput({
 
   const modeInput =
     state.mode === "midi-notes" ? (
-      <div className="input-group">
-        <label htmlFor="midi-notes">midi notes</label>
+      <div className="flex flex-col gap-2 mb-4">
+        <label htmlFor="midi-notes" className="font-semibold">
+          MIDI notes
+        </label>
         <input
           id="midi-notes"
           type="text"
+          className="rounded-lg border border-zinc-300 bg-white px-4 py-3 text-base text-zinc-900 outline-none transition focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/20"
           value={state.notesText}
           onChange={(e) => update({ notesText: e.target.value })}
           onBlur={() => update({ committedNotesText: state.notesText })}
@@ -244,11 +249,11 @@ export function MusicInput({
     ) : null;
 
   return (
-    <div className="px-8 py-4 rounded-2xl bg-stone-200">
+    <div className="p-8 rounded-2xl bg-stone-200">
       <div
         role="group"
         aria-label="Input mode"
-        className="mb-2 inline-flex rounded-lg shadow-sm"
+        className="mb-8 inline-flex rounded-lg shadow-sm"
       >
         {inputModes.map(({ mode, label }) => (
           <button
