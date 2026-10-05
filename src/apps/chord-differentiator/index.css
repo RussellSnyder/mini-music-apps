@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+:root {
+  --text: #5f6470;
+  --text-h: #17212b;
+  --bg: #f6f4ef;
+  --border: #d9d5cc;
+  --code-bg: #ebe8df;
+  --input-bg: #fffdf8;
+  --accent: #bd4b2d;
+  --accent-bg: rgba(189, 75, 45, 0.12);
+
+  --sans: "Avenir Next", Avenir, sans-serif;
+  --heading: Georgia, serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  color-scheme: light;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  min-height: 100svh;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  margin: 0 0 16px;
+  color: var(--text-h);
+  font-size: clamp(40px, 8vw, 72px);
+  line-height: 1;
+  @media (max-width: 1024px) {
+    font-size: 42px;
+  }
+}
+h2 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 118%;
+}
+p {
+  margin: 0;
+}

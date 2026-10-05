@@ -1,0 +1,232 @@
+.site-header {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  padding: 24px clamp(20px, 5vw, 72px);
+}
+
+.brand {
+  color: var(--text-h);
+  font-family: var(--heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+}
+
+nav {
+  display: flex;
+  gap: 24px;
+}
+
+nav a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+nav a:hover,
+nav a.active {
+  color: var(--accent);
+}
+
+.system-controls {
+  align-items: start;
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.system-controls h2 {
+  grid-column: 1 / -1;
+  margin-bottom: 4px;
+}
+
+.system-controls label {
+  color: var(--text);
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+.system-controls select {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-h);
+  cursor: pointer;
+  font: inherit;
+  min-width: 112px;
+  padding: 12px 36px 12px 14px;
+}
+
+.system-controls select:focus-visible {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent-border);
+  outline-offset: 2px;
+}
+
+.theme-switch {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  padding: 8px 12px;
+}
+
+.theme-switch:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.page {
+  flex: 1;
+  padding: 8vh clamp(20px, 8vw, 112px);
+  text-align: left;
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-size: clamp(3rem, 7vw, 6rem);
+  line-height: 0.98;
+  margin: 20px 0 28px;
+  max-width: 760px;
+}
+
+.intro {
+  color: var(--text);
+  font-size: 1.2rem;
+  max-width: 540px;
+}
+
+.actions {
+  margin-top: 40px;
+}
+
+.button {
+  border: 1px solid var(--accent);
+  display: inline-block;
+  padding: 12px 18px;
+  text-decoration: none;
+}
+
+.button.primary {
+  background: var(--accent);
+  color: white;
+}
+
+.tonal-system-title {
+  border: 2px solid #000;
+  margin-bottom: -15px;
+  margin-left: 15px;
+  padding: 4px 8px;
+  display: inline-block;
+}
+
+:root[data-theme="dark"] .tonal-system-title {
+  border-color: #fff;
+}
+
+.tonal-system + .tonal-system {
+  margin-top: 40px;
+}
+
+.tonal-system-chord-selected {
+  fill: #a0871f;
+  stroke: #a0871f;
+}
+
+.chord-scale-entry-selected {
+  fill: #a0871f;
+  stroke: #a0871f;
+}
+
+:root[data-theme="dark"] .chord-scale-entry-selected {
+  /* fill: #fff !important;
+  stroke: #fff !important; */
+}
+
+.chord-scale-page {
+  margin-top: 40px;
+}
+
+@media (max-width: 600px) {
+  .site-header {
+    padding: 20px;
+  }
+
+  nav {
+    gap: 16px;
+  }
+
+  .theme-switch {
+    padding: 6px 8px;
+  }
+
+  .page {
+    padding-top: 12vh;
+  }
+}
+
+@media print {
+  .site-header {
+    border-bottom: none;
+    justify-content: flex-start;
+    padding: 0 0 24px;
+  }
+
+  .site-header nav,
+  .theme-switch,
+  .system-controls {
+    display: none;
+  }
+
+  .brand {
+    color: #000;
+    padding: 8px;
+  }
+
+  .page {
+    max-width: none;
+    padding: 0;
+  }
+
+  .chord-scale-page {
+    margin-top: 40px;
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .chord-scale-page > .chord-scale-component:nth-child(5) {
+    background-color: aqua;
+    break-after: page;
+    page-break-after: always;
+  }
+  .chord-scale-page > .chord-scale-component:nth-child(6) {
+    margin-top: 10px;
+  }
+
+  .tonal-system-title {
+    border-color: #000;
+  }
+
+  .tonal-system-chord-selected {
+    fill: black;
+    stroke: black;
+  }
+
+  .chord-scale-entry-selected {
+    fill: black;
+    stroke: black;
+  }
+}
