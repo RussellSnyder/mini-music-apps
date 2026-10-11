@@ -1,4 +1,4 @@
-import { Note, Scale } from "tonal";
+import { Note } from "tonal";
 import { convertMidiNumberToABC } from "../../../shared/utils/noteConverstion";
 
 export type NonScaleToneResolution =
@@ -11,13 +11,14 @@ export type NonScaleToneResolution =
 export function transposeDownByScaleSteps(
   midiNotes: number[],
   steps: number,
-  root: string,
-  scaleName: string,
+  scaleNotes: string,
   nonScaleToneResolution: NonScaleToneResolution,
 ): number[] {
   const chromas = new Set(
-    Scale.get(`${root} ${scaleName}`)
-      .notes.map((n) => Note.chroma(n))
+    scaleNotes
+      .split(/[\s,]+/)
+      .filter(Boolean)
+      .map((n) => Note.chroma(n))
       .filter((c): c is number => c !== undefined),
   );
   if (chromas.size === 0) return midiNotes;
@@ -30,7 +31,7 @@ export function transposeDownByScaleSteps(
 
     if (isNonChord && nonScaleToneResolution === "chromatic") {
       const lastMidiNote = midiNotes[i - 1];
-    }
+      }
 
     while (remaining > 0 && note > 0) {
       note -= 1;
@@ -121,8 +122,7 @@ function transposeAbcLine(
 function transposeBody(
   body: string[],
   steps: number,
-  root: string,
-  scaleName: string,
+  scaleNotes: string,
   nonScaleToneResolution: NonScaleToneResolution,
 ): string[] {
   const altered = new Set<string>();
@@ -133,8 +133,7 @@ function transposeBody(
         transposeDownByScaleSteps(
           [midi],
           steps,
-          root,
-          scaleName,
+          scaleNotes,
           nonScaleToneResolution,
         )[0],
       altered,
@@ -146,14 +145,13 @@ function transposeBody(
 export function transposeAbcDownByScaleSteps(
   abc: string,
   steps: number,
-  root: string,
-  scaleName: string,
+  scaleNotes: string,
   nonScaleToneResolution: NonScaleToneResolution,
 ): string {
   const { header, body } = splitAbc(abc);
   return [
     ...header,
-    ...transposeBody(body, steps, root, scaleName, nonScaleToneResolution),
+    ...transposeBody(body, steps, scaleNotes, nonScaleToneResolution),
   ].join("\n");
 }
 
@@ -161,8 +159,7 @@ export function transposeAbcDownByScaleSteps(
 export function buildVoicesAbc(
   melodyAbc: string,
   stepsBelow: number[],
-  root: string,
-  scaleName: string,
+  scaleNotes: string,
   nonScaleToneResolution: NonScaleToneResolution,
 ): string {
   const { header, body } = splitAbc(melodyAbc);
@@ -171,7 +168,7 @@ export function buildVoicesAbc(
   const ids = [0, ...stepsBelow].map((_, i) => i + 1);
   const voices = [0, ...stepsBelow].map(
     (steps, i) =>
-      `V:${i + 1}\n${transposeBody(body, steps, root, scaleName, nonScaleToneResolution).join("\n")}`,
+      `V:${i + 1}\n${transposeBody(body, steps, scaleNotes, nonScaleToneResolution).join("\n")}`,
   );
   return [...header, `%%score ${ids.join(" ")}`, ...voices].join("\n");
 }

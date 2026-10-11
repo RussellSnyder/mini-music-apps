@@ -15,8 +15,7 @@ type VoiceProps = {
   index: number;
   value: VoiceValue;
   melodyAbc: string;
-  root: string;
-  scale: string;
+  scaleNotes: string;
   nonScaleToneResolution: NonScaleToneResolution;
   onChange: (value: VoiceValue) => void;
   onRemove: () => void;
@@ -26,8 +25,7 @@ export function Voice({
   index,
   value,
   melodyAbc,
-  root,
-  scale,
+  scaleNotes,
   nonScaleToneResolution,
   onChange,
   onRemove,
@@ -39,11 +37,10 @@ export function Voice({
       transposeAbcDownByScaleSteps(
         melodyAbc,
         value.stepsBelow,
-        root,
-        scale,
+        scaleNotes,
         nonScaleToneResolution,
       ),
-    [melodyAbc, value.stepsBelow, root, scale, nonScaleToneResolution],
+    [melodyAbc, value.stepsBelow, scaleNotes, nonScaleToneResolution],
   );
 
   return (

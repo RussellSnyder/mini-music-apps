@@ -3,7 +3,7 @@ import { AbcViewer } from "@/shared/AbcViewer";
 import { getInitialMusicOutput, MusicInput } from "@/shared/MusicInput";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
-import { ScaleType } from "tonal";
+import { Scale, ScaleType } from "tonal";
 import { Voice, type VoiceValue } from "./components/Voice";
 import { buildVoicesAbc, type NonScaleToneResolution } from "./utils/voicing";
 
@@ -37,8 +37,10 @@ const ROOTS = [
 const SCALES = ScaleType.names();
 const NON_SCALE_TONE_OPTIONS = [
   { value: "repeat-last-note", label: "Repeat last note" },
-  { value: "chromatic", label: "Chromatic" },
+  { value: "chromatic approach", label: "Chromatic Approach" },
 ] as const;
+
+const ARTISTS = ["Basie", "Nestico", "Ellington"] as const;
 
 const selectClassName =
   "rounded-lg border border-zinc-300 bg-white px-4 py-3 text-base text-zinc-900 outline-none transition focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/20";
@@ -49,6 +51,9 @@ function App() {
   );
   const [root, setRoot] = useState("C");
   const [scale, setScale] = useState("major");
+  const [scaleNotes, setScaleNotes] = useState(() =>
+    Scale.get("C major").notes.join(" "),
+  );
   const [nonScaleToneResolution, setNonScaleToneResolution] =
     useState<NonScaleToneResolution>(NON_SCALE_TONE_OPTIONS[0].value);
   const [voices, setVoices] = useState<VoiceValue[]>([
@@ -62,14 +67,29 @@ function App() {
       buildVoicesAbc(
         melodyAbc,
         voices.map((v) => v.stepsBelow),
-        root,
-        scale,
+        scaleNotes,
         nonScaleToneResolution,
       ),
-    [melodyAbc, voices, root, scale, nonScaleToneResolution],
+    [melodyAbc, voices, scaleNotes, nonScaleToneResolution],
   );
 
+  const generateScale = () =>
+    setScaleNotes(Scale.get(`${root} ${scale}`).notes.join(" "));
+
   const nextVoiceId = useRef(4);
+
+  const [presetMode, setPresetMode] = useState<"artist" | "manual">("artist");
+  const [artist, setArtist] = useState<(typeof ARTISTS)[number]>(ARTISTS[0]);
+  const [voiceCount, setVoiceCount] = useState(3);
+  const [voiceSpacing, setVoiceSpacing] = useState(2);
+
+  const generateVoices = () =>
+    setVoices(
+      Array.from({ length: Math.max(0, voiceCount) }, (_, i) => ({
+        id: String(nextVoiceId.current++),
+        stepsBelow: (i + 1) * voiceSpacing,
+      })),
+    );
 
   const addVoice = () =>
     setVoices((current) => [
@@ -95,7 +115,6 @@ function App() {
         initialAbc={defaultAbc}
         onMusicInputChange={(output) => setMelodyAbc(output.abcNotation)}
       />
-
       <div className="flex flex-col gap-6 sm:flex-row [&>*]:flex-1">
         <div className="flex flex-col gap-2">
           <label htmlFor="root" className="font-semibold">
@@ -131,6 +150,26 @@ function App() {
             ))}
           </select>
         </div>
+        <button
+          type="button"
+          onClick={generateScale}
+          className="self-end rounded-lg bg-indigo-600 px-4 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-indigo-700"
+        >
+          Generate scale
+        </button>
+      </div>
+      <div className="flex flex-col gap-2">
+        <label htmlFor="scale-notes" className="font-semibold">
+          Scale notes
+        </label>
+        <input
+          id="scale-notes"
+          type="text"
+          value={scaleNotes}
+          onChange={(e) => setScaleNotes(e.target.value)}
+          placeholder="C D E F G A B"
+          className={selectClassName}
+        />
       </div>
       <div className="flex flex-col gap-2">
         <label htmlFor="non-scale-tone" className="font-semibold">
@@ -162,14 +201,95 @@ function App() {
           <h2 className="text-xl font-semibold">Voices</h2>
         </summary>
         <div className="mt-4 flex flex-col gap-4">
+          <div className="flex flex-col gap-4 rounded-lg border border-zinc-200 bg-white p-4">
+            <h3 className="text-lg font-semibold">Presets</h3>
+            <div className="inline-flex self-start overflow-hidden rounded-lg border border-zinc-300">
+              {(
+                [
+                  ["manual", "Manual presets"],
+                  ["artist", "Artist presets"],
+                ] as const
+              ).map(([mode, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  aria-pressed={presetMode === mode}
+                  onClick={() => setPresetMode(mode)}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    presetMode === mode
+                      ? "bg-indigo-600 text-white"
+                      : "bg-white text-zinc-700 hover:bg-zinc-100"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {presetMode === "artist" ? (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="artist" className="font-semibold">
+                  Artist
+                </label>
+                <select
+                  id="artist"
+                  value={artist}
+                  onChange={(e) =>
+                    setArtist(e.target.value as (typeof ARTISTS)[number])
+                  }
+                  className={selectClassName}
+                >
+                  {ARTISTS.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end [&>div]:flex-1">
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="voice-count" className="font-semibold">
+                    Number of voices
+                  </label>
+                  <input
+                    id="voice-count"
+                    type="number"
+                    min={1}
+                    value={voiceCount}
+                    onChange={(e) => setVoiceCount(Number(e.target.value))}
+                    className={selectClassName}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="voice-spacing" className="font-semibold">
+                    Space between voices
+                  </label>
+                  <input
+                    id="voice-spacing"
+                    type="number"
+                    min={1}
+                    value={voiceSpacing}
+                    onChange={(e) => setVoiceSpacing(Number(e.target.value))}
+                    className={selectClassName}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={generateVoices}
+                  className="rounded-lg bg-indigo-600 px-4 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-indigo-700"
+                >
+                  Generate voices
+                </button>
+              </div>
+            )}
+          </div>
           {voices.map((voice, index) => (
             <Voice
               key={voice.id}
               index={index}
               value={voice}
               melodyAbc={melodyAbc}
-              root={root}
-              scale={scale}
+              scaleNotes={scaleNotes}
               nonScaleToneResolution={nonScaleToneResolution}
               onChange={(next) =>
                 setVoices((current) =>
