@@ -1,7 +1,7 @@
 import { Midi as ToneMidi } from "@tonejs/midi";
 import { AbcNotation, Midi as TonalMidi } from "tonal";
 
-export function convertMidiNumberToABC(midiNumber: number, noteRhythm = "4") {
+export function convertMidiNumberToABC(midiNumber: number, noteRhythm = "") {
   const noteName = TonalMidi.midiToNoteName(midiNumber);
   return AbcNotation.scientificToAbcNotation(noteName) + noteRhythm;
 }

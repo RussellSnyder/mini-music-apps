@@ -12,7 +12,7 @@ const defaultAbc = `
 M:4/4
 L:1/8
 Q:1/4=120
-E2 G c d2 c2 | A _A G2 F E C2 |
+E2 G c d _d c2 | A _A G2 F E C2 |
 `;
 
 const ROOTS = [
@@ -36,8 +36,8 @@ const ROOTS = [
 ];
 const SCALES = ScaleType.names();
 const NON_SCALE_TONE_OPTIONS = [
+  { value: "chromatic-approach", label: "Chromatic Approach" },
   { value: "repeat-last-note", label: "Repeat last note" },
-  { value: "chromatic approach", label: "Chromatic Approach" },
 ] as const;
 
 const ARTISTS = ["Basie", "Nestico", "Ellington"] as const;
@@ -227,10 +227,12 @@ function App() {
             </div>
             {presetMode === "artist" ? (
               <div className="flex flex-col gap-2">
+                COMING SOON
                 <label htmlFor="artist" className="font-semibold">
                   Artist
                 </label>
                 <select
+                  disabled
                   id="artist"
                   value={artist}
                   onChange={(e) =>
