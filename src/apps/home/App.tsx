@@ -45,6 +45,13 @@ const apps = [
     href: "/tonaljs-explorer/",
     visual: "scales",
   },
+  {
+    title: "Tonal Possibilities",
+    description:
+      "Enter notes and see which chords and scales contain all of them.",
+    href: "/tonal-possibilities/",
+    visual: "chords",
+  },
 ];
 
 function Navigation() {
