@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import "./App.css";
 
@@ -37,14 +38,21 @@ const apps = [
     href: "/melody-block-voicing/",
     visual: "chords",
   },
+  {
+    title: "TonalJS Explorer",
+    description:
+      "Try out the notes, chords, scales and more from the Tonal library.",
+    href: "/tonaljs-explorer/",
+    visual: "scales",
+  },
 ];
 
 function Navigation() {
   return (
     <nav className="site-nav" aria-label="Main navigation">
-      <a className="site-brand" href="/">
+      <Link className="site-brand" href="/">
         Mini Music Apps
-      </a>
+      </Link>
       <a className="site-nav-link" href="/about/">
         About
       </a>
