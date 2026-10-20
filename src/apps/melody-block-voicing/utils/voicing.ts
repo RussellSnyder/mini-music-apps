@@ -1,4 +1,4 @@
-import { AbcNotation, Note } from "tonal";
+import { AbcNotation } from "tonal";
 import {
   abcNoteToMidi,
   isAbcNote,
@@ -9,42 +9,6 @@ import { convertMidiNumberToABC } from "../../../shared/utils/noteConverstion";
 const TODO_PLACEHOLDER = "TODO_PLACEHOLDER";
 
 export type NonScaleToneResolution = "repeat-last-note" | "chromatic-approach";
-
-// Moves each MIDI note down by a number of scale steps. A note outside the
-// scale counts the first scale tone below it as step one.
-export function transposeDownByScaleSteps(
-  midiNotes: number[],
-  steps: number,
-  scaleNotes: string,
-  nonScaleTonePlaceholder: string = "TODO",
-): number[] {
-  const chromas = new Set(
-    scaleNotes
-      .split(/[\s,]+/)
-      .filter(Boolean)
-      .map((n) => Note.chroma(n))
-      .filter((c): c is number => c !== undefined),
-  );
-  if (chromas.size === 0) return midiNotes;
-
-  return midiNotes.map((midi, i) => {
-    let note = midi;
-    let remaining = steps;
-
-    const isNonChord = !chromas.has(((note % 12) + 12) % 12);
-
-    if (isNonChord) {
-      note = [nonScaleTonePlaceholder];
-      return note;
-    }
-
-    while (remaining > 0 && note > 0) {
-      note -= 1;
-      if (chromas.has(((note % 12) + 12) % 12)) remaining -= 1;
-    }
-    return note;
-  });
-}
 
 const PITCH_CLASSES: Record<string, number> = {
   C: 0,
@@ -251,21 +215,7 @@ function transposeBody(
       .join("|"),
   );
 
-  console.log({ fillTodos });
-
   return fillTodos;
-  return body.map((line) => {
-    // First we generate the steps for notes that are in the scale
-    // Leaving placeholders for non-scale tones
-    // then we fill those based on the behavior defined by nonScaleToneResolution
-    const lineWithPlacholders = transposeAbcLine(
-      line,
-      (midi) => transposeDownByScaleSteps([midi], steps, scaleNotes)[0],
-      altered,
-    );
-
-    return lineWithPlacholders;
-  });
 }
 
 // Same rhythm, bars and rests as the input, with every pitch moved down
