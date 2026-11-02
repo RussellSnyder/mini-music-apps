@@ -106,7 +106,6 @@ function transposeBody(
   const linesWithMeasures = lines.map((line) =>
     line.map((measure) => measure.split(" ")),
   );
-  console.log({ linesWithMeasures });
   // if the note entered isn't a scale note, we leave a placeholder for now
   const transposedMeasuresWithPlaceholders = linesWithMeasures.map((measure) =>
     measure.map((notes) =>
@@ -137,7 +136,6 @@ function transposeBody(
       }),
     ),
   );
-  console.log({ transposedMeasuresWithPlaceholders });
   const fillTodos = transposedMeasuresWithPlaceholders.map((measure) =>
     measure
       .map((notes) =>
@@ -147,7 +145,6 @@ function transposeBody(
               const nonScaleToneAbcNote = noteOrChar.slice(
                 TODO_PLACEHOLDER.length,
               );
-              console.log({ nonScaleToneAbcNote });
               // figure out if this is chromatic up or down
               // if the last note is high and the next note is low, we approach from above
               // if the last note is low and the next is high, we approach from below
@@ -182,24 +179,15 @@ function transposeBody(
                 const abcNoteAndRhythm =
                   splitAbcNoteAndRhythm(nonScaleToneAbcNote);
                 const rhythm = abcNoteAndRhythm?.rhythm ?? "";
-                console.log({ rhythm });
-                console.log({ previousNote, nextNote });
                 if (!previousNote || !nextNote) return nonScaleToneAbcNote;
 
                 const midiNextNote = abcNoteToMidi(nextNote) ?? 0;
                 const midiPreviousNote = abcNoteToMidi(previousNote) ?? 0;
 
-                console.log({ midiNextNote, midiPreviousNote });
                 const difference =
                   (midiNextNote ?? 0) - (midiPreviousNote ?? 0);
-                console.log({ difference });
                 if (difference < 0) {
                   // approach from above
-                  console.log(
-                    "approach from above",
-                    convertMidiNumberToABC(midiNextNote + 1),
-                    { rhythm },
-                  );
                   return `${convertMidiNumberToABC(midiNextNote + 1)}${rhythm}`;
                 } else if (difference > 0) {
                   // approach from below
