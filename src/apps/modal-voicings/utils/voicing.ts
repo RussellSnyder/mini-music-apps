@@ -5,6 +5,7 @@ import {
   splitAbcNoteAndRhythm,
 } from "../../../shared/utils/abcNotation";
 import { convertMidiNumberToABC } from "../../../shared/utils/noteConverstion";
+import { sortScaleStartingWithC } from "../../../shared/utils/scale";
 
 const TODO_PLACEHOLDER = "TODO_PLACEHOLDER";
 
@@ -95,10 +96,12 @@ function transposeBody(
   nonScaleToneResolution: NonScaleToneResolution,
 ): string[] {
   const scaleNotesArray = scaleNotes.split(" ");
-  const scaleOverAllOctaves = Array.from({ length: 10 }, (_, octave) =>
-    scaleNotesArray.map((note) => `${note}${octave}`),
+  const scaleStaringWithC = sortScaleStartingWithC(scaleNotesArray);
+  const scaleOverAllOctaves = Array.from({ length: 15 }, (_, octave) =>
+    scaleStaringWithC.map((note) => `${note}${octave}`),
   ).flat();
-  // todo handle invalid input
+
+  console.log("scaleOverAllOctaves", scaleOverAllOctaves);
 
   const lines = body.map((line) => line.split("|"));
   const linesWithMeasures = lines.map((line) =>

@@ -20,6 +20,9 @@ type MusicInputState = {
   notesText: string;
   committedNotesText: string;
   abcText: string;
+  meter: string;
+  baseNoteLength: string;
+  tempo: string;
   uploadedMidi: UploadedMidi | null;
   isLoading: boolean;
 };
@@ -44,14 +47,44 @@ function createMusicInputState(
   notesText: string,
   abcText: string,
 ): MusicInputState {
+  const meter = abcText.match(/^\s*M:(.+)$/m)?.[1]?.trim() ?? "4/4";
+  const baseNoteLength = abcText.match(/^\s*L:(.+)$/m)?.[1]?.trim() ?? "1/16";
+  const tempo = abcText.match(/^\s*Q:1\/4=(\d+)\s*$/m)?.[1] ?? "120";
+
   return {
     mode: "abc",
     notesText,
     committedNotesText: notesText,
     abcText,
+    meter,
+    baseNoteLength,
+    tempo,
     uploadedMidi: null,
     isLoading: false,
   };
+}
+
+function getAbcBody(abc: string): string {
+  return abc
+    .split(/\r?\n/)
+    .filter((line) => !/^\s*[MLQ]:/.test(line))
+    .join("\n")
+    .trim();
+}
+
+function addAbcHeaders(
+  abc: string,
+  meter: string,
+  baseNoteLength: string,
+  tempo: string,
+): string {
+  const headers = [
+    meter.trim() ? `M:${meter.trim()}` : "",
+    baseNoteLength.trim() ? `L:${baseNoteLength.trim()}` : "",
+    tempo.trim() ? `Q:1/4=${tempo.trim()}` : "",
+  ].filter(Boolean);
+  const body = getAbcBody(abc);
+  return [...headers, body].filter(Boolean).join("\n");
 }
 
 export function parseNotesText(text: string): number[] {
@@ -107,16 +140,23 @@ function getMidiNotes(state: MusicInputState): number[] {
 
 // Notes and uploaded files are shown as editable ABC
 function getEditorValue(state: MusicInputState): string | null {
+  let abc: string | null;
   switch (state.mode) {
     case "abc":
-      return state.abcText;
+      abc = state.abcText;
+      break;
     case "midi-notes": {
       const notes = parseNotesText(state.committedNotesText);
-      return notes.length > 0 ? generateAbcNotation([notes]) : null;
+      abc = notes.length > 0 ? generateAbcNotation([notes]) : null;
+      break;
     }
     case "file":
-      return state.uploadedMidi?.abcNotation ?? null;
+      abc = state.uploadedMidi?.abcNotation ?? null;
+      break;
   }
+  return abc === null
+    ? null
+    : addAbcHeaders(abc, state.meter, state.baseNoteLength, state.tempo);
 }
 
 // What the parent needs to know about the current input
@@ -239,12 +279,24 @@ export function MusicInput({
     ) : null;
 
   const editorValue = getEditorValue(state);
+  const editorBody = editorValue === null ? null : getAbcBody(editorValue);
   const editor =
-    editorValue !== null ? (
+    editorBody !== null ? (
       <ABCInputEditor
         playback
-        value={editorValue}
-        onChange={(value) => update({ abcText: value, mode: "abc" })}
+        value={editorBody}
+        notationValue={editorValue ?? ""}
+        onChange={(value) =>
+          update({
+            abcText: addAbcHeaders(
+              value,
+              state.meter,
+              state.baseNoteLength,
+              state.tempo,
+            ),
+            mode: "abc",
+          })
+        }
       />
     ) : null;
 
@@ -274,6 +326,39 @@ export function MusicInput({
 
       <form onSubmit={(e) => e.preventDefault()} className="input-form">
         {modeInput}
+        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <label className="flex flex-col gap-1 text-sm font-semibold">
+            Meter (M:)
+            <input
+              type="text"
+              value={state.meter}
+              onChange={(e) => update({ meter: e.target.value })}
+              className="rounded-lg border border-zinc-300 bg-white px-3 py-2 font-normal text-zinc-900 outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/20"
+              placeholder="4/4"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm font-semibold">
+            Base Note Length (L:)
+            <input
+              type="text"
+              value={state.baseNoteLength}
+              onChange={(e) => update({ baseNoteLength: e.target.value })}
+              className="rounded-lg border border-zinc-300 bg-white px-3 py-2 font-normal text-zinc-900 outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/20"
+              placeholder="1/16"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm font-semibold">
+            Tempo (Q:1/4=)
+            <input
+              type="number"
+              min="1"
+              value={state.tempo}
+              onChange={(e) => update({ tempo: e.target.value })}
+              className="rounded-lg border border-zinc-300 bg-white px-3 py-2 font-normal text-zinc-900 outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/20"
+              placeholder="120"
+            />
+          </label>
+        </div>
         {editor}
       </form>
     </div>

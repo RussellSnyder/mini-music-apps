@@ -7,12 +7,14 @@ interface ABCInputEditorProps {
   value: string;
   onChange: (value: string) => void;
   playback?: boolean;
+  notationValue?: string;
 }
 
 export function ABCInputEditor({
   value,
   onChange,
   playback = false,
+  notationValue = value,
 }: ABCInputEditorProps) {
   const paperRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLDivElement>(null);
@@ -22,7 +24,7 @@ export function ABCInputEditor({
   useEffect(() => {
     if (!paperRef.current) return;
     paperRef.current.innerHTML = "";
-    const [tune] = abcjs.renderAbc(paperRef.current, value, {
+    const [tune] = abcjs.renderAbc(paperRef.current, notationValue, {
       responsive: "resize",
       add_classes: true,
     });
@@ -53,7 +55,7 @@ export function ABCInputEditor({
         // ignore cleanup errors
       }
     };
-  }, [value, playback]);
+  }, [notationValue, playback]);
 
   return (
     <div className="flex flex-col gap-4">
