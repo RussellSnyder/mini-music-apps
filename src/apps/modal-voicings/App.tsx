@@ -102,6 +102,7 @@ function App() {
       <MusicInput
         initialNotes={defaultNotes}
         initialAbc={defaultAbc}
+        savedSongsStorageKey="mini-music-apps:modal-voicings:songs"
         onMusicInputChange={(output) => setMelodyAbc(output.abcNotation)}
       />
       <div className="flex flex-col gap-6 sm:flex-row [&>*]:flex-1">

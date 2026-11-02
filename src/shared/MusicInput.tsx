@@ -1,6 +1,8 @@
 "use client";
 import { useRef, useState, type ChangeEvent } from "react";
 import { ABCInputEditor } from "./ABCInputEditor";
+import { PresetLibrary } from "./PresetLibrary";
+import { getAbcNotePreview } from "./utils/abcNotation";
 import {
   generateAbcNotation,
   parseMidiFileToAbc,
@@ -189,16 +191,19 @@ type MusicInputProps = {
   initialNotes: string;
   initialAbc: string;
   onMusicInputChange: (output: MusicInputOutput) => void;
+  savedSongsStorageKey?: string;
 };
 
 export function MusicInput({
   initialNotes,
   initialAbc,
+  savedSongsStorageKey,
   onMusicInputChange: onChange,
 }: MusicInputProps) {
   const [state, setState] = useState(() =>
     createMusicInputState(initialNotes, initialAbc),
   );
+  const [activeTab, setActiveTab] = useState<"input" | "songs">("input");
   // Async upload handlers must merge into the latest state, not a stale closure
   const latestState = useRef(state);
 
@@ -300,67 +305,133 @@ export function MusicInput({
       />
     ) : null;
 
+  const loadSong = (abcNotation: string) => {
+    const next = createMusicInputState(state.notesText, abcNotation);
+    latestState.current = next;
+    setState(next);
+    onChange(toOutput(next));
+    setActiveTab("input");
+  };
+
   return (
     <div className="p-8 rounded-2xl bg-stone-200">
+      {savedSongsStorageKey && (
+        <div
+          role="tablist"
+          aria-label="Music input views"
+          className="mb-6 flex gap-1 border-b border-zinc-300"
+        >
+          {[
+            { id: "input", label: "Input" },
+            { id: "songs", label: "Songs" },
+          ].map(({ id, label }) => (
+            <button
+              key={id}
+              id={`music-input-tab-${id}`}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === id}
+              aria-controls={`music-input-panel-${id}`}
+              onClick={() => setActiveTab(id as "input" | "songs")}
+              className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === id
+                  ? "border-indigo-600 text-indigo-700"
+                  : "border-transparent text-zinc-600 hover:text-zinc-900"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div
-        role="group"
-        aria-label="Input mode"
-        className="mb-8 inline-flex rounded-lg shadow-sm"
+        id="music-input-panel-input"
+        role={savedSongsStorageKey ? "tabpanel" : undefined}
+        aria-labelledby={
+          savedSongsStorageKey ? "music-input-tab-input" : undefined
+        }
+        hidden={activeTab !== "input"}
       >
-        {inputModes.map(({ mode, label }) => (
-          <button
-            key={mode}
-            type="button"
-            aria-pressed={state.mode === mode}
-            onClick={() => update({ mode })}
-            className={`px-4 py-2 text-sm font-medium border border-gray-300 -ml-px first:ml-0 first:rounded-l-lg last:rounded-r-lg transition-colors focus:z-10 ${
-              state.mode === mode
-                ? "bg-indigo-600 border-indigo-600 text-white z-10"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+        <div
+          role="group"
+          aria-label="Input mode"
+          className="mb-8 inline-flex rounded-lg shadow-sm"
+        >
+          {inputModes.map(({ mode, label }) => (
+            <button
+              key={mode}
+              type="button"
+              aria-pressed={state.mode === mode}
+              onClick={() => update({ mode })}
+              className={`px-4 py-2 text-sm font-medium border border-gray-300 -ml-px first:ml-0 first:rounded-l-lg last:rounded-r-lg transition-colors focus:z-10 ${
+                state.mode === mode
+                  ? "bg-indigo-600 border-indigo-600 text-white z-10"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={(e) => e.preventDefault()} className="input-form">
+          {modeInput}
+          <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <label className="flex flex-col gap-1 text-sm font-semibold">
+              Meter
+              <input
+                type="text"
+                value={state.meter}
+                onChange={(e) => update({ meter: e.target.value })}
+                className="rounded-lg border border-zinc-300 bg-white px-3 py-2 font-normal text-zinc-900 outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/20"
+                placeholder="4/4"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-semibold">
+              Base Note Length
+              <input
+                type="text"
+                value={state.baseNoteLength}
+                onChange={(e) => update({ baseNoteLength: e.target.value })}
+                className="rounded-lg border border-zinc-300 bg-white px-3 py-2 font-normal text-zinc-900 outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/20"
+                placeholder="1/16"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-semibold">
+              Tempo
+              <input
+                type="number"
+                min="1"
+                value={state.tempo}
+                onChange={(e) => update({ tempo: e.target.value })}
+                className="rounded-lg border border-zinc-300 bg-white px-3 py-2 font-normal text-zinc-900 outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/20"
+                placeholder="120"
+              />
+            </label>
+          </div>
+          {editor}
+        </form>
       </div>
 
-      <form onSubmit={(e) => e.preventDefault()} className="input-form">
-        {modeInput}
-        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <label className="flex flex-col gap-1 text-sm font-semibold">
-            Meter (M:)
-            <input
-              type="text"
-              value={state.meter}
-              onChange={(e) => update({ meter: e.target.value })}
-              className="rounded-lg border border-zinc-300 bg-white px-3 py-2 font-normal text-zinc-900 outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/20"
-              placeholder="4/4"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm font-semibold">
-            Base Note Length (L:)
-            <input
-              type="text"
-              value={state.baseNoteLength}
-              onChange={(e) => update({ baseNoteLength: e.target.value })}
-              className="rounded-lg border border-zinc-300 bg-white px-3 py-2 font-normal text-zinc-900 outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/20"
-              placeholder="1/16"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm font-semibold">
-            Tempo (Q:1/4=)
-            <input
-              type="number"
-              min="1"
-              value={state.tempo}
-              onChange={(e) => update({ tempo: e.target.value })}
-              className="rounded-lg border border-zinc-300 bg-white px-3 py-2 font-normal text-zinc-900 outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/20"
-              placeholder="120"
-            />
-          </label>
+      {savedSongsStorageKey && (
+        <div
+          id="music-input-panel-songs"
+          role="tabpanel"
+          aria-labelledby="music-input-tab-songs"
+          hidden={activeTab !== "songs"}
+        >
+          <PresetLibrary
+            storageKey={savedSongsStorageKey}
+            currentValue={editorValue ?? ""}
+            onLoad={loadSong}
+            title="Saved songs"
+            itemLabel="song"
+            canSave={Boolean(editorValue?.trim())}
+            getPreview={(abcNotation) => getAbcNotePreview(abcNotation)}
+          />
         </div>
-        {editor}
-      </form>
+      )}
     </div>
   );
 }

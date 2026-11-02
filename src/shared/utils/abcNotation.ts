@@ -1,4 +1,4 @@
-import { Midi, AbcNotation } from "tonal";
+import { AbcNotation, Midi } from "tonal";
 
 // accidental (^ ^^ _ __ =), letter, octave marks (' or ,), optional length (2, /2, 3/2, /)
 const ABC_NOTE = /^(\^{1,2}|_{1,2}|=)?[A-Ga-g](?:'+|,+)?(?:\d+)?(?:\/\d*)?$/;
@@ -13,6 +13,22 @@ export function isAbcNote(value: string): boolean {
 export function isAbcNotes(value: string): boolean {
   const tokens = value.trim().split(/\s+/);
   return tokens.length > 0 && tokens[0] !== "" && tokens.every(isAbcNote);
+}
+
+export function getAbcNotePreview(abc: string, limit = 10): string {
+  const body = abc
+    .split(/\r?\n/)
+    .filter((line) => !/^\s*[A-Za-z]:/.test(line) && !/^\s*%/.test(line))
+    .map((line) => line.replace(/%.*$/, ""))
+    .join(" ")
+    .replace(/\[[A-Za-z]:[^\]]*\]/g, "")
+    .replace(/"[^"]*"/g, "")
+    .replace(/![^!]*!/g, "");
+  const notes =
+    body.match(/(?:\^{1,2}|_{1,2}|=)?[A-Ga-g][,']*(?:\d+\/\d+|\/\d*|\d+)?/g) ??
+    [];
+
+  return notes.slice(0, Math.max(0, limit)).join(" ");
 }
 
 export type AbcNoteParts = {
@@ -45,7 +61,7 @@ export function abcNoteToMidi(value: string): number | null {
   if (!note) return null;
 
   const scientificNote = AbcNotation.abcToScientificNotation(note);
-  
+
   const midi = Midi.toMidi(scientificNote);
   return midi;
 }

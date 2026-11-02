@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   abcNoteToMidi,
   compareAbcNotes,
+  getAbcNotePreview,
   isAbcNote,
   isAbcNoteHigher,
   isAbcNoteLower,
@@ -29,6 +30,20 @@ describe("isAbcNotes", () => {
   it("rejects mixed or empty input", () => {
     expect(isAbcNotes("C C#4")).toBe(false);
     expect(isAbcNotes("  ")).toBe(false);
+  });
+});
+
+describe("getAbcNotePreview", () => {
+  it("returns the first ten notes and ignores headers and comments", () => {
+    expect(
+      getAbcNotePreview(
+        "X:1\nT:Song\nM:4/4\nK:C\nC D E F G A B c d e f g\n% comment",
+      ),
+    ).toBe("C D E F G A B c d e");
+  });
+
+  it("preserves accidentals, octave marks, and note lengths", () => {
+    expect(getAbcNotePreview("^F,3/2 _B/2 [CEG]", 5)).toBe("^F,3/2 _B/2 C E G");
   });
 });
 
