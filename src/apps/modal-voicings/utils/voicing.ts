@@ -1,0 +1,237 @@
+import { AbcNotation } from "tonal";
+import {
+  abcNoteToMidi,
+  isAbcNote,
+  splitAbcNoteAndRhythm,
+} from "../../../shared/utils/abcNotation";
+import { convertMidiNumberToABC } from "../../../shared/utils/noteConverstion";
+
+const TODO_PLACEHOLDER = "TODO_PLACEHOLDER";
+
+export type NonScaleToneResolution = "repeat-last-note" | "chromatic-approach";
+
+const PITCH_CLASSES: Record<string, number> = {
+  C: 0,
+  D: 2,
+  E: 4,
+  F: 5,
+  G: 7,
+  A: 9,
+  B: 11,
+};
+
+const isFieldLine = (line: string) => /^\s*[A-Za-z]:/.test(line);
+
+// Header fields worth carrying over; the key is dropped because pitches are
+// always written with explicit accidentals
+function splitAbc(abc: string) {
+  const lines = abc.split(/\r?\n/);
+  const header = lines
+    .filter((line) => /^\s*[XTMLQ]:/.test(line))
+    .map((line) => line.trim());
+  // Blank lines would end the tune in ABC
+  const body = lines.filter((line) => line.trim() && !isFieldLine(line));
+  return { header, body };
+}
+
+// Quoted text, decorations and inline fields are matched first so their
+// letters aren't mistaken for notes
+const TOKEN =
+  /("[^"]*"|![^!]*!|\[[A-Za-z]:[^\]]*\])|(\|)|(\^{1,2}|_{1,2}|=)?([A-Ga-g])([,']*)/g;
+
+// Use more tonal.js functions for note manipulation if needed
+function transposeAbcLine(
+  line: string,
+  shift: (midi: number) => number,
+  altered: Set<string>,
+): string {
+  return line.replace(
+    TOKEN,
+    (
+      match,
+      passthrough?: string,
+      bar?: string,
+      accidental = "",
+      letter?: string,
+      octaveMarks = "",
+    ) => {
+      if (passthrough) return match;
+      if (bar) {
+        altered.clear();
+        return match;
+      }
+      const offset = accidental.startsWith("^")
+        ? accidental.length
+        : accidental.startsWith("_")
+          ? -accidental.length
+          : 0;
+      const marks = [...octaveMarks].reduce(
+        (sum, mark) => sum + (mark === "'" ? 12 : -12),
+        0,
+      );
+      const midi =
+        ((letter as string) === (letter as string).toLowerCase() ? 72 : 60) +
+        PITCH_CLASSES[(letter as string).toUpperCase()] +
+        marks +
+        offset;
+
+      const abcNote = convertMidiNumberToABC(shift(midi), "");
+      const abcMatch = abcNote.match(/^([_^=]*)([A-Ga-g])/);
+      const abcLetter = abcMatch?.[2].toUpperCase() ?? "";
+      if (abcMatch?.[1] && abcMatch[1] !== "=") {
+        altered.add(abcLetter);
+        return abcNote;
+      }
+      if (altered.has(abcLetter)) return `=${abcNote}`;
+      return abcNote;
+    },
+  );
+}
+
+function transposeBody(
+  body: string[],
+  steps: number,
+  scaleNotes: string,
+  nonScaleToneResolution: NonScaleToneResolution,
+): string[] {
+  const scaleNotesArray = scaleNotes.split(" ");
+  const scaleOverAllOctaves = Array.from({ length: 10 }, (_, octave) =>
+    scaleNotesArray.map((note) => `${note}${octave}`),
+  ).flat();
+  // todo handle invalid input
+
+  const lines = body.map((line) => line.split("|"));
+  const linesWithMeasures = lines.map((line) =>
+    line.map((measure) => measure.split(" ")),
+  );
+  // if the note entered isn't a scale note, we leave a placeholder for now
+  const transposedMeasuresWithPlaceholders = linesWithMeasures.map((measure) =>
+    measure.map((notes) =>
+      notes.map((noteOrChar) => {
+        if (isAbcNote(noteOrChar)) {
+          const abcNoteAndRhythm = splitAbcNoteAndRhythm(noteOrChar);
+          const abcNote = abcNoteAndRhythm?.note ?? "";
+          const rhythm = abcNoteAndRhythm?.rhythm ?? "";
+
+          // get interval between the note and the scale steps
+          const scientificNote = AbcNotation.abcToScientificNotation(abcNote);
+
+          if (scaleOverAllOctaves.includes(scientificNote)) {
+            // find the new note based on steps
+            const transposedNote =
+              scaleOverAllOctaves[
+                (scaleOverAllOctaves.indexOf(scientificNote) +
+                  steps +
+                  scaleOverAllOctaves.length) %
+                  scaleOverAllOctaves.length
+              ];
+            return `${AbcNotation.scientificToAbcNotation(transposedNote)}${rhythm}`;
+          } else {
+            return `${TODO_PLACEHOLDER}${noteOrChar}`;
+          }
+        }
+        return noteOrChar;
+      }),
+    ),
+  );
+  const fillTodos = transposedMeasuresWithPlaceholders.map((measure) =>
+    measure
+      .map((notes) =>
+        notes
+          .map((noteOrChar, i) => {
+            if (noteOrChar.startsWith(TODO_PLACEHOLDER)) {
+              const nonScaleToneAbcNote = noteOrChar.slice(
+                TODO_PLACEHOLDER.length,
+              );
+              // figure out if this is chromatic up or down
+              // if the last note is high and the next note is low, we approach from above
+              // if the last note is low and the next is high, we approach from below
+              let previousNote;
+              // maybe there is a rest or | just before this note
+              // iterate backwards to the true previous note that is not a rest or bar
+              for (let j = i - 1; j >= 0; j--) {
+                const candidate = notes[j];
+
+                if (candidate && isAbcNote(candidate)) {
+                  previousNote = candidate;
+                  break;
+                }
+              }
+              let nextNote;
+              // maybe there is a rest or | just after this note
+              // iterate forwards to the true next note that is not a rest or bar
+              for (let j = i + 1; j < notes.length; j++) {
+                const candidate = notes[j];
+                if (candidate && isAbcNote(candidate)) {
+                  nextNote = candidate;
+                  break;
+                }
+              }
+
+              if (nonScaleToneResolution === "repeat-last-note") {
+                // if first note is non-chord tone, i guess will leave it blank
+                return previousNote;
+              }
+
+              if (nonScaleToneResolution === "chromatic-approach") {
+                const abcNoteAndRhythm =
+                  splitAbcNoteAndRhythm(nonScaleToneAbcNote);
+                const rhythm = abcNoteAndRhythm?.rhythm ?? "";
+                if (!previousNote || !nextNote) return nonScaleToneAbcNote;
+
+                const midiNextNote = abcNoteToMidi(nextNote) ?? 0;
+                const midiPreviousNote = abcNoteToMidi(previousNote) ?? 0;
+
+                const difference =
+                  (midiNextNote ?? 0) - (midiPreviousNote ?? 0);
+                if (difference < 0) {
+                  // approach from above
+                  return `${convertMidiNumberToABC(midiNextNote + 1)}${rhythm}`;
+                } else if (difference > 0) {
+                  // approach from below
+                  return `${convertMidiNumberToABC(midiNextNote - 1)}${rhythm}`;
+                }
+                return nonScaleToneAbcNote;
+              }
+            }
+            return noteOrChar;
+          })
+          .join(" "),
+      )
+      .join("|"),
+  );
+
+  return fillTodos;
+}
+
+// Same rhythm, bars and rests as the input, with every pitch moved down
+export function transposeAbcMelodyByScaleSteps(
+  abc: string,
+  steps: number,
+  scaleNotes: string,
+  nonScaleToneResolution: NonScaleToneResolution,
+): string {
+  const { header, body } = splitAbc(abc);
+  return [
+    ...header,
+    ...transposeBody(body, steps, scaleNotes, nonScaleToneResolution),
+  ].join("\n");
+}
+
+// The melody plus each voice as separate ABC voices, so they render and play together
+export function buildVoicesAbc(
+  melodyAbc: string,
+  stepsFromMelody: number[],
+  scaleNotes: string,
+  nonScaleToneResolution: NonScaleToneResolution,
+): string {
+  const { header, body } = splitAbc(melodyAbc);
+  if (!body.some((line) => line.trim())) return "";
+
+  const ids = [0, ...stepsFromMelody].map((_, i) => i + 1);
+  const voices = [0, ...stepsFromMelody].map(
+    (steps, i) =>
+      `V:${i + 1}\n${transposeBody(body, steps, scaleNotes, nonScaleToneResolution).join("\n")}`,
+  );
+  return [...header, `%%score ${ids.join(" ")}`, ...voices].join("\n");
+}

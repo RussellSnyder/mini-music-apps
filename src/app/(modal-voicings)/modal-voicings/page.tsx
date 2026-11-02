@@ -1,4 +1,4 @@
-import App from "@/apps/melody-block-voicing/App";
+import App from "@/apps/modal-voicings/App";
 
 export default function Page() {
   return <App />;

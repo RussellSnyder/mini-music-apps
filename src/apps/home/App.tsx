@@ -12,6 +12,12 @@ const apps = [
     visual: "scales",
   },
   {
+    title: "Modal Voicings",
+    description: "Quickly experiment with modal voicings of a melody",
+    href: "/modal-voicings/",
+    visual: "chords",
+  },
+  {
     title: "Kaprekar Sequencer",
     description: "Turn number patterns into evolving musical sequences.",
     href: "/kaprekar-sequencer/",
@@ -29,13 +35,6 @@ const apps = [
     description:
       "Compare chord voicings and discover the notes that set them apart.",
     href: "/chord-differentiator/",
-    visual: "chords",
-  },
-  {
-    title: "Melody Block Voicing",
-    description:
-      "Harmonize a melody in four-way close block voicing, sax soli style.",
-    href: "/melody-block-voicing/",
     visual: "chords",
   },
   {
