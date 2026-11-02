@@ -101,8 +101,6 @@ function transposeBody(
     scaleStaringWithC.map((note) => `${note}${octave}`),
   ).flat();
 
-  console.log("scaleOverAllOctaves", scaleOverAllOctaves);
-
   const lines = body.map((line) => line.split("|"));
   const linesWithMeasures = lines.map((line) =>
     line.map((measure) => measure.split(" ")),
